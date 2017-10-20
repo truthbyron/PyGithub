@@ -395,6 +395,34 @@ class PullRequest(github.GithubObject.CompletableGithubObject):
         )
         return github.PullRequestComment.PullRequestComment(self._requester, headers, data, completed=True)
 
+    def create_review(self, body, commit_id, event, comments):
+        """
+        :calls: `POST /repos/:owner/:repo/pulls/:number/reviews <http://developer.github.com/v3/pulls/reviews>`_
+        :param body: string
+        :param commit_id: :class:`github.Commit.Commit`
+        :param event: string
+        :param comments: iterable of ``{'path', 'position', 'body'}`` comments
+        :rtype: :class:`github.PullRequestReview.PullRequestReview`
+        """
+        assert body is None or isinstance(body, (str, unicode)), body
+        assert event is None or isinstance(event, (str, unicode)), event
+        assert commit_id is None or isinstance(commit_id, github.Commit.Commit), commit_id
+        post_parameters = {}
+        if body is not None:
+            post_parameters.update({"body": body})
+        if event:
+            post_parameters.update({"event": event})
+        if commit_id is not None:
+            post_parameters.update({"commit_id": commit_id._identity})
+        if comments is not None:
+            post_parameters.update({"comments": comments})
+        headers, data = self._requester.requestJsonAndCheck(
+            "POST",
+            self.url + "/reviews",
+            input=post_parameters
+        )
+        return github.PullRequestReview.PullRequestReview(self._requester, headers, data, completed=True)
+
     def create_issue_comment(self, body):
         """
         :calls: `POST /repos/:owner/:repo/issues/:number/comments <http://developer.github.com/v3/issues/comments>`_
